@@ -51,4 +51,19 @@ class Audio(Media):
 
         return info
 
+    def get_spec(self,channel=0,n_fft=1024,hop_length=512):
+        if channel > self.nchannels -1:
+            return None
+
+        sig = self.signal
+        if self.nchannels > 1:
+            sig = sig[[channel],:]
+
+        return np.abs(utils.stft(sig,n_fft=n_fft,hop_length=hop_length))
+
+    def plot(self,ax,channel=0,n_fft=1024,hop_length=512):
+        spec = self.get_spec(channel=channel,n_fft=n_fft,hop_length=hop_length)
+        utils.plot_power_spec(spec,ax)
+
+
 
