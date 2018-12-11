@@ -1,2 +1,2 @@
-# audio_handler
+# audio_io
 Herramientas básicas para el manejo de audio (lectura, escritura, extracción de metadatos y transformaciones básicas)
