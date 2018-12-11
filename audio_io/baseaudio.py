@@ -63,7 +63,7 @@ class Audio(Media):
 
     def plot(self,ax,channel=0,n_fft=1024,hop_length=512):
         spec = self.get_spec(channel=channel,n_fft=n_fft,hop_length=hop_length)
-        utils.plot_power_spec(spec,ax)
+        return utils.plot_power_spec(spec,ax)
 
 
 
