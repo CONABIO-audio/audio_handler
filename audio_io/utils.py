@@ -2,6 +2,7 @@
 import os
 import hashlib
 import librosa
+import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -32,6 +33,4 @@ def spectrogram(sig,n_fft,hop_length):
     return np.abs(stft(sig,n_fft,hop_length))
 
 def plot_power_spec(spec,ax):
-    librosa.display.specshow(librosa.amplitude_to_db(spec,ref=np.max),ax=ax,y_axis='log', x_axis='time')
-    plt.colorbar(cax=ax,format='%+2.0f dB')
-    plt.tight_layout()
+    return librosa.display.specshow(librosa.amplitude_to_db(spec,ref=np.max),ax=ax,y_axis='linear',x_axis='time')
