@@ -26,7 +26,10 @@ def binaryMD5(path):
 
 
 def stft(sig,n_fft,hop_length):
-    return librosa.stft(sig,n_fft=n_fft,hop_length=hop_length)
+    return librosa.stft(sig,n_fft,hop_length)
+
+def spectrogram(sig,n_fft,hop_length):
+    return np.abs(stft(sig,n_fft,hop_length))
 
 def plot_power_spec(spec,ax):
     librosa.display.specshow(librosa.amplitude_to_db(spec,ref=np.max),ax=ax,y_axis='log', x_axis='time')
