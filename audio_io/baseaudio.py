@@ -12,6 +12,10 @@ class Media(object):
     def read_media(self):
         pass
 
+    @abstractmethod
+    def write_media(self,path):
+        pass
+
 class Audio(Media):
     __metaclass__ = ABCMeta
 
@@ -87,7 +91,7 @@ class Audio(Media):
 
         return self.signal
 
-    def write_media(self, path, sr=None, aformat="wav"):
+    def write_media(self,path,media_format="wav",sr=None):
         if aformat in ["wav","flac","ogg"]:
             sig = self.get_signal()
             out_sr = self.sr
@@ -95,11 +99,11 @@ class Audio(Media):
             if sr is not None:
                 out_sr = sr
 
-            utils.write(path,sig,out_sr,self.nchannels,aformat)
+            utils.write(path,sig,out_sr,self.nchannels,media_format)
 
             return path
         else:
-            raise ValueError("Writing with to '"+aformat+"' is not supported.")
+            raise ValueError("Writing with to '"+media_format+"' is not supported.")
 
     def get_spec(self, channel=0, n_fft=1024, hop_length=512):
         if channel > self.nchannels -1:
