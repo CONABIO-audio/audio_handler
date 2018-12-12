@@ -29,25 +29,26 @@ class Audio(Media):
 
         if len(shape) > 1:
             self.nchannels = shape[0]
-            self.size = shape[1]
+            self.length = shape[1]
         else:
             self.nchannels = 1
-            self.size = shape[0]
+            self.length = shape[0]
 
         self.shape = shape
-        self.duration = (float(self.size)/float(self.sr))/self.timeexp
+        self.duration = (float(self.length)/float(self.sr))/self.timeexp
+        self.filesize = utils.media_size(self.path)
 
 
     def get_media_info(self):
         info = {}
         info["path"] = self.path
+        info["filesize"] = self.filesize
+        info["md5"] = self.md5
         info["timeexp"] = self.timeexp
         info["samplerate"] = self.sr
+        info["length"] = self.length
         info["nchannels"] = self.nchannels
         info["duration"] = self.duration
-        info["shape"] = self.shape
-        info["size"] = self.size
-        info["md5"] = self.md5
 
         return info
 

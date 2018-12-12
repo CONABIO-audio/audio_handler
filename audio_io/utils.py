@@ -25,6 +25,14 @@ def binaryMD5(path):
     else:
         return None
 
+def media_size(path):
+    if path is not None:
+        if os.path.isfile(path):
+            return os.path.getsize(path)
+        else:
+            return None
+    else:
+        return None
 
 def stft(sig,n_fft,hop_length):
     return librosa.stft(sig,n_fft,hop_length)
