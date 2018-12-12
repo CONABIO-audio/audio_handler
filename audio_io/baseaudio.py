@@ -15,7 +15,7 @@ class Media(object):
 class Audio(Media):
     __metaclass__ = ABCMeta
 
-    def __init__(self,config,read_sr=None,from_config=None):
+    def __init__(self,config,read_sr=None,from_config=False):
         self.read_sr = read_sr
         self.config = config
         self.timeexp = self.config["timeexp"]
