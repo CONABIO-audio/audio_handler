@@ -26,6 +26,7 @@ class Audio(Media):
         self.md5 = utils.binaryMD5(self.path)
         self.duration = (float(self.length)/float(self.original_sr))/self.timeexp
         self.filesize = utils.media_size(self.path)
+        self.sr = self.original_sr
         self.mask = None
         self.signal = None
 
@@ -45,7 +46,8 @@ class Audio(Media):
 
     def unset_mask(self):
         self.mask = None
-        self.read_media()
+        self.signal = None
+        self.sr = self.original_sr
 
     def get_media_info(self):
         info = {}
