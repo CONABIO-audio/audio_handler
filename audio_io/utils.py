@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 def read_info(path):
     wav = wave.open(path)
-    
+
     return wav.getframerate(), wav.getnchannels(), wav.getsampwidth(), wav.getnframes()
     
 def read(path,sr,offset=0.0,duration=None):
@@ -54,3 +54,12 @@ def spectrogram(sig,n_fft,hop_length):
 
 def plot_power_spec(spec,ax):
     return librosa.display.specshow(librosa.amplitude_to_db(spec,ref=np.max),ax=ax,y_axis='linear',x_axis='time')
+
+def plot_waveform(sig,sr,ax,wtype="simple"):
+    if wtype != "simple":
+        y_harm, y_perc = librosa.effects.hpss(sig)
+        librosa.display.waveplot(y_harm, ax=ax, sr=sr, alpha=0.25)
+        return librosa.display.waveplot(y_perc, ax=ax, sr=sr, color='r', alpha=0.5)
+    else:
+        return librosa.display.waveplot(sig,sr=sr,ax=ax)
+

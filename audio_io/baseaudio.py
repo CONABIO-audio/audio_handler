@@ -15,11 +15,29 @@ class Media(object):
 class Audio(Media):
     __metaclass__ = ABCMeta
 
-    def __init__(self,path,sr=None,timeexp=1):
-        self.read_sr = sr
-        self.timeexp = timeexp
-        self.path = path
-        self.read_basic_info()
+    def __init__(self,config,read_sr=None,from_config=None):
+        self.read_sr = read_sr
+        self.config = config
+        self.timeexp = self.config["timeexp"]
+        self.path = self.config["path"]
+
+        if from_config:
+            self.load_basic_info()
+        else:
+            self.read_basic_info()
+            
+
+    def load_basic_info(self):
+        self.original_sr = self.config["sr"]
+        self.nchannels = self.config["nchannels"]
+        self.sampwidth = self.config["sampwidth"]
+        self.length = self.config["length"]
+        self.md5 = self.config["md5"]
+        self.duration = self.config["duration"]
+        self.filesize = self.config["filesize"]
+        self.sr = self.original_sr
+        self.mask = None
+        self.signal = None
 
     def read_basic_info(self):
         self.original_sr,self.nchannels,self.sampwidth,self.length = utils.read_info(self.path)
@@ -56,6 +74,7 @@ class Audio(Media):
         info["md5"] = self.md5
         info["timeexp"] = self.timeexp
         info["samplerate"] = self.original_sr
+        info["sampwidth"] = self.sampwidth
         info["length"] = self.length
         info["nchannels"] = self.nchannels
         info["duration"] = self.duration
@@ -93,10 +112,15 @@ class Audio(Media):
 
         return utils.spectrogram(sig,n_fft=n_fft,hop_length=hop_length)
 
-    def plot(self,ax,offset=0.0,duration=None,channel=0,n_fft=1024,hop_length=512):
+    def plot_spec(self,ax,channel=0,n_fft=1024,hop_length=512):
         spec = self.get_spec(channel=channel,n_fft=n_fft,hop_length=hop_length)
 
         return utils.plot_power_spec(spec,ax)
+
+    def plot_waveform(self,ax,wtype="simple"):
+        sig = self.get_signal()
+
+        return utils.plot_waveform(sig,self.sr,ax,wtype=wtype)
 
 
 
