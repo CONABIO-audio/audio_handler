@@ -3,11 +3,17 @@ import os
 import hashlib
 import librosa
 import librosa.display
+import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 
 def read(path,sr):
     return librosa.load(path,sr=sr)
+
+def write(path,sig,sr,nchannels,aformat="wav"):
+    if nchannels > 1:
+        sig = np.transpose(sig,(1,0))
+    sf.write(path,sig,sr,format=aformat)
 
 def binaryMD5(path):
     if path is not None:

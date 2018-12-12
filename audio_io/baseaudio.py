@@ -52,18 +52,49 @@ class Audio(Media):
 
         return info
 
-    def get_spec(self,channel=0,n_fft=1024,hop_length=512):
-        if channel > self.nchannels -1:
-            return None
-
+    def get_chunk(self,offset=0,duration=None,min_length=0):
         sig = self.signal
+
+        if duration is not None:
+            start = min(int(round((offset/self.timeexp)*self.sr)),self.length-1)
+            stop = min(start+(int(round((duration/self.timeexp)*self.sr))),self.length)
+            if stop - start > min_length:
+                if self.nchannels > 1:
+                    sig = sig[:,start:stop]
+                else:
+                    sig = sig[start:stop]
+            else:
+                raise ValueError("Values for 'offset' and 'duration' are nonsense or define a chunk that is too small.")
+
+        return sig
+
+
+    def write_media(self,path, offset=0, duration=None, sr=None, aformat="wav"):
+        if aformat in ["wav","flac","ogg"]:
+            sig = self.get_chunk(offset=offset,duration=duration)
+            out_sr = self.sr
+
+            if sr is not None:
+                out_sr = sr
+
+            utils.write(path,sig,out_sr,self.nchannels,aformat)
+            return path
+        else:
+            raise ValueError("Writing with format '"+aformat+"' is not supported.")
+
+    def get_spec(self,offset=0,duration=None,channel=0,n_fft=1024,hop_length=512):
+        if channel > self.nchannels -1:
+            raise ValueError("Channel outside range.")
+
+        sig = self.get_chunk(offset=offset,duration=duration,min_length=5*n_fft)
+
         if self.nchannels > 1:
             sig = sig[[channel],:]
 
         return utils.spectrogram(sig,n_fft=n_fft,hop_length=hop_length)
 
-    def plot(self,ax,channel=0,n_fft=1024,hop_length=512):
-        spec = self.get_spec(channel=channel,n_fft=n_fft,hop_length=hop_length)
+    def plot(self,ax,offset=0.0,duration=None,channel=0,n_fft=1024,hop_length=512):
+        spec = self.get_spec(offset=offset,duration=duration,channel=channel,n_fft=n_fft,hop_length=hop_length)
         return utils.plot_power_spec(spec,ax)
 
 
