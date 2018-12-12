@@ -19,25 +19,33 @@ class Audio(Media):
         self.read_sr = sr
         self.timeexp = timeexp
         self.path = path
-        self.read_media()
+        self.read_basic_info()
+
+    def read_basic_info(self):
+        self.original_sr,self.nchannels,self.sampwidth,self.length = utils.read_info(self.path)
+        self.md5 = utils.binaryMD5(self.path)
+        self.duration = (float(self.length)/float(self.original_sr))/self.timeexp
+        self.filesize = utils.media_size(self.path)
+        self.mask = None
+        self.signal = None
 
     def read_media(self):
-        self.signal, self.sr = utils.read(self.path,sr=self.read_sr)
-        self.md5 = utils.binaryMD5(self.path)
+        offset = 0.0
+        duration = None
 
-        shape = list(self.signal.shape)
+        if self.mask is not None:
+            offset = self.mask[0]
+            duration = self.mask[1]-self.mask[0]
 
-        if len(shape) > 1:
-            self.nchannels = shape[0]
-            self.length = shape[1]
-        else:
-            self.nchannels = 1
-            self.length = shape[0]
+        self.signal, self.sr = utils.read(self.path,self.read_sr,offset,duration)
+        
+    def set_mask(self,startTime,endTime):
+        self.mask = [startTime/self.timeexp,endTime/self.timeexp]
+        self.read_media()
 
-        self.shape = shape
-        self.duration = (float(self.length)/float(self.sr))/self.timeexp
-        self.filesize = utils.media_size(self.path)
-
+    def unset_mask(self):
+        self.mask = None
+        self.read_media()
 
     def get_media_info(self):
         info = {}
@@ -45,48 +53,38 @@ class Audio(Media):
         info["filesize"] = self.filesize
         info["md5"] = self.md5
         info["timeexp"] = self.timeexp
-        info["samplerate"] = self.sr
+        info["samplerate"] = self.original_sr
         info["length"] = self.length
         info["nchannels"] = self.nchannels
         info["duration"] = self.duration
 
         return info
 
-    def get_chunk(self,offset=0,duration=None,min_length=0):
-        sig = self.signal
+    def get_signal(self):
+        if self.signal is None:
+            self.read_media()
 
-        if duration is not None:
-            start = min(int(round((offset/self.timeexp)*self.sr)),self.length-1)
-            stop = min(start+(int(round((duration/self.timeexp)*self.sr))),self.length)
-            if stop - start > min_length:
-                if self.nchannels > 1:
-                    sig = sig[:,start:stop]
-                else:
-                    sig = sig[start:stop]
-            else:
-                raise ValueError("Values for 'offset' and 'duration' are nonsense or define a chunk that is too small.")
+        return self.signal
 
-        return sig
-
-
-    def write_media(self,path, offset=0, duration=None, sr=None, aformat="wav"):
+    def write_media(self, path, sr=None, aformat="wav"):
         if aformat in ["wav","flac","ogg"]:
-            sig = self.get_chunk(offset=offset,duration=duration)
+            sig = self.get_signal()
             out_sr = self.sr
 
             if sr is not None:
                 out_sr = sr
 
             utils.write(path,sig,out_sr,self.nchannels,aformat)
+
             return path
         else:
-            raise ValueError("Writing with format '"+aformat+"' is not supported.")
+            raise ValueError("Writing with to '"+aformat+"' is not supported.")
 
-    def get_spec(self,offset=0,duration=None,channel=0,n_fft=1024,hop_length=512):
+    def get_spec(self, channel=0, n_fft=1024, hop_length=512):
         if channel > self.nchannels -1:
             raise ValueError("Channel outside range.")
 
-        sig = self.get_chunk(offset=offset,duration=duration,min_length=5*n_fft)
+        sig = self.get_signal()
 
         if self.nchannels > 1:
             sig = sig[[channel],:]
@@ -94,7 +92,8 @@ class Audio(Media):
         return utils.spectrogram(sig,n_fft=n_fft,hop_length=hop_length)
 
     def plot(self,ax,offset=0.0,duration=None,channel=0,n_fft=1024,hop_length=512):
-        spec = self.get_spec(offset=offset,duration=duration,channel=channel,n_fft=n_fft,hop_length=hop_length)
+        spec = self.get_spec(channel=channel,n_fft=n_fft,hop_length=hop_length)
+
         return utils.plot_power_spec(spec,ax)
 
 

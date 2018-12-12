@@ -1,14 +1,20 @@
 
 import os
 import hashlib
+import wave
 import librosa
 import librosa.display
 import soundfile as sf
 import numpy as np
 import matplotlib.pyplot as plt
 
-def read(path,sr):
-    return librosa.load(path,sr=sr)
+def read_info(path):
+    wav = wave.open(path)
+    
+    return wav.getframerate(), wav.getnchannels(), wav.getsampwidth(), wav.getnframes()
+    
+def read(path,sr,offset=0.0,duration=None):
+    return librosa.load(path,sr=sr,offset=offset,duration=duration)
 
 def write(path,sig,sr,nchannels,aformat="wav"):
     if nchannels > 1:
