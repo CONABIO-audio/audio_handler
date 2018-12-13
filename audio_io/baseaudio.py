@@ -91,19 +91,17 @@ class Audio(Media):
 
         return self.signal
 
-    def write_media(self,path,media_format="wav",sr=None):
-        if aformat in ["wav","flac","ogg"]:
-            sig = self.get_signal()
-            out_sr = self.sr
 
-            if sr is not None:
-                out_sr = sr
+    def get_zcr(self,channel=0,frame_length=1024,hop_length=512):
+        if channel > self.nchannels -1:
+            raise ValueError("Channel outside range.")
 
-            utils.write(path,sig,out_sr,self.nchannels,media_format)
+        sig = self.get_signal()
 
-            return path
-        else:
-            raise ValueError("Writing with to '"+media_format+"' is not supported.")
+        if self.nchannels > 1:
+            sig = sig[[channel],:]
+        
+        return utils.zero_crossing_rate(sig,frame_length,hop_length)       
 
     def get_spec(self, channel=0, n_fft=1024, hop_length=512):
         if channel > self.nchannels -1:
@@ -115,6 +113,31 @@ class Audio(Media):
             sig = sig[[channel],:]
 
         return utils.spectrogram(sig,n_fft=n_fft,hop_length=hop_length)
+
+    def get_mfcc(self,channel=0,sr=22050, S=None, n_mfcc=20, dct_type=2, norm='ortho'):
+        if channel > self.nchannels -1:
+            raise ValueError("Channel outside range.")
+
+        sig = self.get_signal()
+
+        if self.nchannels > 1:
+            sig = sig[[channel],:]
+        
+        return utils.mfcc(sig,sr=self.sr, S=None, n_mfcc=n_mfcc, dct_type=dct_type, norm=norm)
+
+    def write_media(self,path,media_format="wav",sr=None):
+        if media_format in ["wav","flac","ogg"]:
+            sig = self.get_signal()
+            out_sr = self.sr
+
+            if sr is not None:
+                out_sr = sr
+
+            utils.write(path,sig,out_sr,self.nchannels,media_format)
+
+            return path
+        else:
+            raise ValueError("Writing to '"+media_format+"' is not supported yet.")
 
     def plot_spec(self,ax,channel=0,n_fft=1024,hop_length=512):
         spec = self.get_spec(channel=channel,n_fft=n_fft,hop_length=hop_length)

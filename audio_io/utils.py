@@ -16,10 +16,10 @@ def read_info(path):
 def read(path,sr,offset=0.0,duration=None):
     return librosa.load(path,sr=sr,offset=offset,duration=duration)
 
-def write(path,sig,sr,nchannels,aformat="wav"):
+def write(path,sig,sr,nchannels,media_format="wav"):
     if nchannels > 1:
         sig = np.transpose(sig,(1,0))
-    sf.write(path,sig,sr,format=aformat)
+    sf.write(path,sig,sr,format=media_format)
 
 def binaryMD5(path):
     if path is not None:
@@ -46,11 +46,17 @@ def media_size(path):
     else:
         return None
 
-def stft(sig,n_fft,hop_length):
-    return librosa.stft(sig,n_fft,hop_length)
+def stft(sig,n_fft,hop_length,win_length=None, window='hann', center=True, pad_mode='reflect'):
+    return librosa.stft(sig,n_fft,hop_length,win_length=win_length, window=window, center=center, pad_mode=pad_mode)
 
 def spectrogram(sig,n_fft,hop_length):
     return np.abs(stft(sig,n_fft,hop_length))
+
+def zero_crossing_rate(sig, frame_length=2048, hop_length=512,center=True):
+    return librosa.feature.zero_crossing_rate(sig,frame_length,hop_length,center=center)
+
+def mfcc(sig,sr=22050, S=None, n_mfcc=20, dct_type=2, norm='ortho'):
+    return librosa.feature.mfcc(sig,sr,S, n_mfcc, dct_type, norm)
 
 def plot_power_spec(spec,ax):
     return librosa.display.specshow(librosa.amplitude_to_db(spec,ref=np.max),ax=ax,y_axis='linear',x_axis='time')
